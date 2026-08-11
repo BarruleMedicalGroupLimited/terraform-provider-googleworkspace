@@ -1,0 +1,84 @@
+# Copyright (c) Barrule Medical Group Limited
+# SPDX-License-Identifier: MPL-2.0
+
+name: Test
+
+# Runs build/fmt/vet/lint/unit-test checks on every push to main and on every
+# pull request. Deliberately does not run acceptance tests (`make testacc`) -
+# those hit the real Google Workspace Admin SDK API, need live credentials,
+# and cost API quota, so they stay a manual/local step (see CONTRIBUTING.md)
+# until we have our own dedicated test environment wired up for them.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: go build ./...
+
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: make fmtcheck
+
+  vet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - run: go vet ./...
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      - uses: golangci/golangci-lint-action@8564da7cb3c6866ed1da648ca8f00a258ef0c802 # v6.5.2
+        with:
+          args: --timeout=10m ./internal/provider/...
+          # There's a backlog of ~24 pre-existing findings from before this
+          # workflow existed (deprecated io/ioutil, unchecked json.Indent
+          # error, staticcheck SA1019 on the SDK's deprecated retry helpers,
+          # a few gosimple nits). Rather than fail every build on unrelated
+          # debt, only fail on issues introduced by this PR/commit. Clean up
+          # the backlog separately, then this can be dropped.
+          only-new-issues: true
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+      # make test runs `go test` without TF_ACC set, so every TestAcc* test
+      # skips itself - this only exercises the unit tests.
+      - run: make test

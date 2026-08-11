@@ -57,9 +57,23 @@ go vet ./...     # must be clean (exit 0) - keep it that way; fix findings
 Acceptance tests (`TestAcc*` in `internal/provider/*_test.go`) require env
 vars documented in `.github/CONTRIBUTING.md` (`GOOGLEWORKSPACE_CUSTOMER_ID`,
 `GOOGLEWORKSPACE_DOMAIN`, `GOOGLEWORKSPACE_IMPERSONATED_USER_EMAIL`,
-credentials, etc.) and are skipped automatically without them. There is no
-CI workflow in this repo that runs them (`.github/workflows/` currently only
-has `release.yml`) — they're a local/manual responsibility.
+credentials, etc.) and are skipped automatically without them. No CI
+workflow runs them - they're a local/manual responsibility until a
+dedicated test environment exists for this fork.
+
+`.github/workflows/`:
+- `test.yml` runs on every push to `main` and every PR: build, `gofmt`,
+  `go vet`, unit tests (`make test`, which never sets `TF_ACC` so
+  acceptance tests self-skip), and `golangci-lint` scoped to
+  `only-new-issues: true`. That scoping is deliberate - there's a backlog
+  of pre-existing findings from before this workflow existed; only newly
+  introduced issues fail the build. Don't quietly widen that scope without
+  either fixing the backlog first or getting a green light to add a
+  temporary `//nolint` inline instead.
+- `release.yml` runs on `v*` tag pushes: builds, signs (GPG), and publishes
+  a GitHub Release via GoReleaser. Needs `GPG_PRIVATE_KEY`/`PASSPHRASE`
+  repo secrets to succeed - see `.github/CONTRIBUTING.md`'s "Releasing"
+  section.
 
 ## Working conventions
 

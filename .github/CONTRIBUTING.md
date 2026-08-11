@@ -115,3 +115,19 @@ If multiple versions are available in a plugin directory (for example after `ter
 When reviewing/merging code, roughly follow the guidelines set in the
 [Maintainer's Etiquette](https://github.com/hashicorp/terraform/blob/main/docs/maintainer-etiquette.md)
 guide.
+
+## Releasing
+
+Pushing a `v*` tag (e.g. `v0.8.0`) triggers [`.github/workflows/release.yml`](workflows/release.yml),
+which builds, signs, and publishes a GitHub Release via [GoReleaser](https://goreleaser.com/).
+Signing requires two repository secrets, neither of which is set by default:
+
+- `GPG_PRIVATE_KEY` - an ASCII-armored GPG private key, e.g. the output of
+  `gpg --armor --export-secret-keys <key-id>`. Use a subkey/derived key
+  dedicated to this repository rather than a personal primary key, so it can
+  be revoked independently if it's ever compromised.
+- `PASSPHRASE` - the passphrase for that key.
+
+Set both under the repository's Settings -> Secrets and variables -> Actions.
+Without them, the "Import GPG key" step of the release workflow fails before
+GoReleaser ever runs.
