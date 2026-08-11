@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright (c) Barrule Medical Group Limited
 // SPDX-License-Identifier: MPL-2.0
 
 package googleworkspace

@@ -1,4 +1,13 @@
 Copyright (c) 2021 HashiCorp, Inc.
+Portions Copyright (c) 2026 Barrule Medical Group Limited
+
+This repository is a fork of hashicorp/terraform-provider-googleworkspace
+(https://github.com/hashicorp/terraform-provider-googleworkspace), which has
+since been archived by HashiCorp. The original work remains Copyright (c)
+HashiCorp, Inc.; modifications and additions made in this fork from 2026
+onward are Copyright (c) Barrule Medical Group Limited. The entire work,
+including this fork, continues to be licensed under the Mozilla Public
+License, Version 2.0, below.
 
 Mozilla Public License Version 2.0
 ==================================
