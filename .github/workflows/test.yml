@@ -25,7 +25,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # persist-credentials: false - none of these jobs push or need the
+      # checkout's token to survive past setup; leaving it persisted in
+      # local git config is unnecessary credential exposure to every
+      # subsequent step (build tooling, linters, dependencies).
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: 'go.mod'
@@ -36,6 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: 'go.mod'
@@ -46,6 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: 'go.mod'
@@ -56,25 +66,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: 'go.mod'
           cache: true
-      - uses: golangci/golangci-lint-action@8564da7cb3c6866ed1da648ca8f00a258ef0c802 # v6.5.2
+      # v7, not v6 - v7 defaults to golangci-lint v2, which is required now
+      # that go.mod targets go1.25 (golangci-lint v1's final release,
+      # v1.64.8, was built with go1.24 and refuses to analyze a newer
+      # module). .golangci.yml is v2-schema as of the same change.
+      - uses: golangci/golangci-lint-action@9fae48acfc02a90574d7c304a1758ef9895495fa # v7.0.1
         with:
           args: --timeout=10m ./internal/provider/...
-          # There's a backlog of ~24 pre-existing findings from before this
-          # workflow existed (deprecated io/ioutil, unchecked json.Indent
-          # error, staticcheck SA1019 on the SDK's deprecated retry helpers,
-          # a few gosimple nits). Rather than fail every build on unrelated
-          # debt, only fail on issues introduced by this PR/commit. Clean up
-          # the backlog separately, then this can be dropped.
+          # There's a backlog of pre-existing findings from before this
+          # workflow existed (deprecated io/ioutil, unchecked errcheck
+          # cases, staticcheck SA1019 on the SDK's deprecated retry
+          # helpers, various simplification nits - v2's broader default
+          # rule set surfaces more of these than v1 did). Rather than fail
+          # every build on unrelated debt, only fail on issues introduced
+          # by this PR/commit. Clean up the backlog separately, then this
+          # can be dropped.
           only-new-issues: true
 
   unit-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: 'go.mod'
@@ -87,6 +107,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1.1.0
         with:
           go-version-file: 'go.mod'
