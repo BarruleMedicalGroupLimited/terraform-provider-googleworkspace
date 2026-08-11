@@ -1,29 +1,29 @@
 Hi there,
 
-Thank you for opening an issue. Please note that we try to keep the Terraform issue tracker reserved for bug reports and feature requests. For general usage questions, please see: https://www.terraform.io/community.html.
+Thank you for opening an issue. This repository is Barrule Medical Group Limited's internal fork of the (now archived) `hashicorp/terraform-provider-googleworkspace`. Please file issues here rather than against the upstream project.
 
 ### Terraform Version
-Run `terraform -v` to show the version. If you are not running the latest version of Terraform, please upgrade because your issue may have already been fixed.
+Run `terraform -v` to show the version.
 
 ### Affected Resource(s)
 Please list the resources as a list, for example:
-- opc_instance
-- opc_storage_volume
+- googleworkspace_user
+- googleworkspace_group
 
 If this issue appears to affect multiple resources, it may be an issue with Terraform's core, so please mention this.
 
 ### Terraform Configuration Files
 ```hcl
-# Copy-paste your Terraform configurations here - for large Terraform configs,
-# please use a service like Dropbox and share a link to the ZIP file. For
-# security, you can also encrypt the files using our GPG public key.
+# Copy-paste your Terraform configurations here. Remove or redact anything
+# sensitive first - service account credentials, access tokens, real user
+# emails, customer/org IDs, etc.
 ```
 
 ### Debug Output
-Please provider a link to a GitHub Gist containing the complete debug output: https://www.terraform.io/docs/internals/debugging.html. Please do NOT paste the debug output in the issue; just paste a link to the Gist.
+Please provide a link to a Gist or paste containing the complete debug output: https://www.terraform.io/docs/internals/debugging.html. Redact any credentials or tokens before sharing - `TF_LOG=DEBUG` scrubs known sensitive fields (e.g. `accessToken`) from provider request/response logs, but review before sharing regardless.
 
 ### Panic Output
-If Terraform produced a panic, please provide a link to a GitHub Gist containing the output of the `crash.log`.
+If Terraform produced a panic, please include the output of the `crash.log`.
 
 ### Expected Behavior
 What should have happened?
@@ -36,8 +36,7 @@ Please list the steps required to reproduce the issue, for example:
 1. `terraform apply`
 
 ### Important Factoids
-Are there anything atypical about your accounts that we should know? For example: Running in EC2 Classic? Custom version of OpenStack? Tight ACLs?
+Is there anything atypical about your setup we should know? For example: custom `oauth_scopes`, domain-wide delegation vs. direct admin roles, impersonation, non-default org unit structure, etc.
 
 ### References
-Are there any other GitHub issues (open or closed) or Pull Requests that should be linked here? For example:
-- GH-1234
+Are there any other issues (open or closed) or pull requests that should be linked here?
