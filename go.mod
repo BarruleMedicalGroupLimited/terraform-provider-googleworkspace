@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-googleworkspace
+module github.com/BarruleMedicalGroupLimited/terraform-provider-googleworkspace
 
 go 1.24.0
 

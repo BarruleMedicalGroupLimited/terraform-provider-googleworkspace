@@ -9,7 +9,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"github.com/hashicorp/terraform-provider-googleworkspace/internal/provider"
+
+	"github.com/BarruleMedicalGroupLimited/terraform-provider-googleworkspace/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -40,7 +41,7 @@ func main() {
 	opts := &plugin.ServeOpts{ProviderFunc: googleworkspace.New(version)}
 
 	if debugMode {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/hashicorp/googleworkspace", opts)
+		err := plugin.Debug(context.Background(), "registry.terraform.io/barrulemedicalgrouplimited/googleworkspace", opts)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
