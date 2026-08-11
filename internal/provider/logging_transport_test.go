@@ -147,24 +147,56 @@ func TestPrettyPrintJsonLines_PreservesNonJsonLines(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Non-JSON lines (including the Authorization header) are passed through
-	// unmodified by this function - obfuscateValues only ever runs on lines
-	// that are themselves valid, whole-line JSON. Header scrubbing is not
-	// this function's job; it documents current behavior so a change here
-	// doesn't silently start leaking (or silently start redacting) header
-	// lines without a test noticing.
-	if !strings.Contains(out, "Authorization: Bearer "+testAccessTokenSecret) {
-		t.Fatalf("expected non-JSON header lines to pass through unchanged, got:\n%s", out)
-	}
+	// Non-JSON, non-sensitive-header lines are passed through unmodified.
 	if !strings.Contains(out, "Host: admin.googleapis.com") {
 		t.Fatalf("expected non-JSON lines to be preserved, got:\n%s", out)
 	}
 
-	// The JSON body line, however, must have its accessToken field scrubbed.
-	lines := strings.Split(out, "\n")
-	bodyLine := lines[len(lines)-1]
-	if strings.Contains(bodyLine, testAccessTokenSecret) {
-		t.Fatalf("expected accessToken in JSON body line to be scrubbed, got:\n%s", bodyLine)
+	// The Authorization header line is redacted (see
+	// TestPrettyPrintJsonLines_RedactsAuthorizationHeader for the dedicated
+	// coverage of that behavior).
+	if strings.Contains(out, testAccessTokenSecret) {
+		// The JSON body's accessToken is also scrubbed, so if the raw
+		// secret still appears anywhere in the output at all, something
+		// regressed - either the header or the body scrubbing.
+		t.Fatalf("expected no occurrence of the raw secret anywhere in output, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Authorization: ********") {
+		t.Fatalf("expected Authorization header value to be redacted, got:\n%s", out)
+	}
+}
+
+func TestPrettyPrintJsonLines_RedactsAuthorizationHeader(t *testing.T) {
+	dump := "GET / HTTP/1.1\r\nAuthorization: Bearer " + testAccessTokenSecret + "\r\nHost: example.com\r\n"
+
+	out, err := prettyPrintJsonLines([]byte(dump))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if strings.Contains(out, testAccessTokenSecret) {
+		t.Fatalf("expected Authorization header value to be redacted, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Authorization: ********") {
+		t.Fatalf("expected redacted Authorization header in output, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Host: example.com") {
+		t.Fatalf("expected unrelated headers to be preserved, got:\n%s", out)
+	}
+}
+
+func TestPrettyPrintJsonLines_RedactsProxyAuthorizationHeaderCaseInsensitively(t *testing.T) {
+	// Header names are case-insensitive per RFC 7230; a lowercase variant
+	// (as some HTTP/2 or proxy implementations emit) must still be caught.
+	dump := "proxy-authorization: Basic " + testAccessTokenSecret
+
+	out, err := prettyPrintJsonLines([]byte(dump))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if strings.Contains(out, testAccessTokenSecret) {
+		t.Fatalf("expected Proxy-Authorization header value to be redacted regardless of case, got:\n%s", out)
 	}
 }
 

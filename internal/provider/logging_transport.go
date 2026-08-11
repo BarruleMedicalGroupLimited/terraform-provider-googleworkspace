@@ -20,6 +20,11 @@ func getValuesToScrub() []string {
 	}
 }
 
+// sensitiveHeaders lists HTTP header names (matched case-insensitively)
+// whose values must never be written to logs verbatim, even at
+// TF_LOG=DEBUG.
+var sensitiveHeaders = []string{"authorization", "proxy-authorization"}
+
 type loggingTransport struct {
 	name      string
 	transport http.RoundTripper
@@ -70,6 +75,10 @@ func NewTransportWithScrubbedLogs(name string, t http.RoundTripper) *loggingTran
 func prettyPrintJsonLines(b []byte) (string, error) {
 	parts := strings.Split(string(b), "\n")
 	for i, p := range parts {
+		if redacted, ok := redactSensitiveHeaderLine(p); ok {
+			parts[i] = redacted
+			continue
+		}
 		if b := []byte(p); json.Valid(b) {
 			var out bytes.Buffer
 
@@ -91,6 +100,38 @@ func prettyPrintJsonLines(b []byte) (string, error) {
 		}
 	}
 	return strings.Join(parts, "\n"), nil
+}
+
+// redactSensitiveHeaderLine checks whether a single line from an HTTP
+// request/response dump (as produced by httputil.DumpRequestOut/
+// DumpResponse) is a header line for one of sensitiveHeaders, and if so
+// returns it with the value replaced.
+//
+// In this provider's current transport chain, the OAuth2 transport that
+// attaches the Authorization header wraps *inside* this logging transport
+// (see SetupClient in provider_config.go), so the header isn't actually
+// present yet at the point requests get dumped for logging. This check
+// exists anyway as defense-in-depth: that safety depends on transport
+// wiring in a different file, which is exactly the kind of invariant a
+// future refactor - or a different call path reusing this function - could
+// break silently. Redacting here doesn't depend on any of that.
+func redactSensitiveHeaderLine(line string) (string, bool) {
+	hasCR := strings.HasSuffix(line, "\r")
+	trimmed := strings.TrimSuffix(line, "\r")
+
+	name, _, found := strings.Cut(trimmed, ":")
+	if !found {
+		return "", false
+	}
+	if !containsString(sensitiveHeaders, strings.ToLower(strings.TrimSpace(name))) {
+		return "", false
+	}
+
+	redacted := name + ": ********"
+	if hasCR {
+		redacted += "\r"
+	}
+	return redacted, true
 }
 
 // obfuscateValues scrubs sensitive fields out of a decoded JSON object,
