@@ -93,14 +93,50 @@ func prettyPrintJsonLines(b []byte) (string, error) {
 	return strings.Join(parts, "\n"), nil
 }
 
+// obfuscateValues scrubs sensitive fields out of a decoded JSON object,
+// recursing into nested objects and arrays so a sensitive field isn't only
+// caught at the top level (e.g. a token nested under a "credentials" object,
+// or inside a list of items).
 func obfuscateValues(m map[string]interface{}) map[string]interface{} {
-	for _, v := range getValuesToScrub() {
-		if _, ok := m[v]; ok {
-			m[v] = "********"
+	if m == nil {
+		return m
+	}
+
+	scrub := getValuesToScrub()
+	for k, v := range m {
+		if containsString(scrub, k) {
+			m[k] = "********"
+			continue
 		}
+		m[k] = obfuscateValue(v)
 	}
 
 	return m
+}
+
+// obfuscateValue recurses into a single decoded JSON value, scrubbing any
+// sensitive fields found in nested objects/arrays. Scalars are returned as-is.
+func obfuscateValue(v interface{}) interface{} {
+	switch val := v.(type) {
+	case map[string]interface{}:
+		return obfuscateValues(val)
+	case []interface{}:
+		for i, item := range val {
+			val[i] = obfuscateValue(item)
+		}
+		return val
+	default:
+		return v
+	}
+}
+
+func containsString(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
 
 const logReqMsg = `%s API Request Details:

@@ -57,6 +57,50 @@ func TestObfuscateValues_NoScrubbableFieldPresent(t *testing.T) {
 	}
 }
 
+func TestObfuscateValues_ScrubsNestedMap(t *testing.T) {
+	m := map[string]interface{}{
+		"credentials": map[string]interface{}{
+			"accessToken": testAccessTokenSecret,
+			"tokenType":   "Bearer",
+		},
+	}
+
+	result := obfuscateValues(m)
+
+	creds := result["credentials"].(map[string]interface{})
+	if got := creds["accessToken"]; got != "********" {
+		t.Fatalf("expected nested accessToken to be scrubbed, got %q", got)
+	}
+	if got := creds["tokenType"]; got != "Bearer" {
+		t.Fatalf("expected sibling field to be untouched, got %q", got)
+	}
+}
+
+func TestObfuscateValues_ScrubsWithinArray(t *testing.T) {
+	m := map[string]interface{}{
+		"items": []interface{}{
+			map[string]interface{}{"accessToken": testAccessTokenSecret, "id": float64(1)},
+			map[string]interface{}{"id": float64(2)},
+		},
+	}
+
+	result := obfuscateValues(m)
+
+	items := result["items"].([]interface{})
+	first := items[0].(map[string]interface{})
+	if got := first["accessToken"]; got != "********" {
+		t.Fatalf("expected accessToken in array element to be scrubbed, got %q", got)
+	}
+	if got := first["id"]; got != float64(1) {
+		t.Fatalf("expected sibling field to be untouched, got %v", got)
+	}
+
+	second := items[1].(map[string]interface{})
+	if _, ok := second["accessToken"]; ok {
+		t.Fatalf("did not expect an accessToken key to be added to an element that never had one")
+	}
+}
+
 func TestObfuscateValues_NilMap(t *testing.T) {
 	// obfuscateValues should not panic when given a nil map (e.g. an empty
 	// JSON body of "{}" unmarshals to a non-nil empty map, but guard against
@@ -144,10 +188,9 @@ func TestPrettyPrintJsonLines_ScrubsMultipleJsonLines(t *testing.T) {
 	}
 }
 
-func TestPrettyPrintJsonLines_DoesNotScrubNestedAccessToken(t *testing.T) {
-	// obfuscateValues only scrubs top-level keys, so an accessToken nested
-	// inside a sub-object currently survives. This test documents that
-	// known limitation rather than asserting it's desired behavior.
+func TestPrettyPrintJsonLines_ScrubsNestedAccessToken(t *testing.T) {
+	// obfuscateValues recurses into nested objects, so an accessToken buried
+	// under a sub-object is scrubbed too, not just top-level fields.
 	body := `{"credentials":{"accessToken":"` + testAccessTokenSecret + `"}}`
 
 	out, err := prettyPrintJsonLines([]byte(body))
@@ -155,8 +198,29 @@ func TestPrettyPrintJsonLines_DoesNotScrubNestedAccessToken(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if !strings.Contains(out, testAccessTokenSecret) {
-		t.Fatalf("expected current implementation to leave nested accessToken unscrubbed, got:\n%s", out)
+	if strings.Contains(out, testAccessTokenSecret) {
+		t.Fatalf("expected nested accessToken to be scrubbed, got:\n%s", out)
+	}
+	if !strings.Contains(out, "********") {
+		t.Fatalf("expected scrubbed placeholder in output, got:\n%s", out)
+	}
+}
+
+func TestPrettyPrintJsonLines_ScrubsAccessTokenInArray(t *testing.T) {
+	// obfuscateValues also recurses into arrays of objects, e.g. a list
+	// response like {"items": [{"accessToken": "..."}]}.
+	body := `{"items":[{"accessToken":"` + testAccessTokenSecret + `","id":1},{"id":2}]}`
+
+	out, err := prettyPrintJsonLines([]byte(body))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if strings.Contains(out, testAccessTokenSecret) {
+		t.Fatalf("expected accessToken nested in an array element to be scrubbed, got:\n%s", out)
+	}
+	if !strings.Contains(out, "********") {
+		t.Fatalf("expected scrubbed placeholder in output, got:\n%s", out)
 	}
 }
 
