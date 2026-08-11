@@ -62,15 +62,17 @@ func New(version string) func() *schema.Provider {
 					DefaultFunc: schema.MultiEnvDefaultFunc([]string{
 						"GOOGLE_OAUTH_ACCESS_TOKEN",
 					}, nil),
-					Optional: true,
+					Optional:  true,
+					Sensitive: true,
 				},
 
 				"credentials": {
 					Description: "Either the path to or the contents of a service account key file in JSON format " +
 						"you can manage key files using the Cloud Console).  If not provided, the application default " +
 						"credentials will be used.",
-					Type:     schema.TypeString,
-					Optional: true,
+					Type:      schema.TypeString,
+					Optional:  true,
+					Sensitive: true,
 					DefaultFunc: schema.MultiEnvDefaultFunc([]string{
 						"GOOGLEWORKSPACE_CREDENTIALS",
 						"GOOGLEWORKSPACE_CLOUD_KEYFILE_JSON",
