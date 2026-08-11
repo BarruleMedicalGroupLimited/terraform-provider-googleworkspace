@@ -1,0 +1,81 @@
+# AGENTS.md
+
+Guidance for AI coding agents working in this repository.
+
+## What this repository is
+
+This is an internal fork of [hashicorp/terraform-provider-googleworkspace](https://github.com/hashicorp/terraform-provider-googleworkspace).
+HashiCorp has **archived** the upstream project and no longer maintains or
+supports it. This fork (`BarruleMedicalGroupLimited/terraform-provider-googleworkspace`)
+is maintained internally by **Barrule Medical Group Limited**. It is not
+affiliated with, published by, or supported by HashiCorp.
+
+## Attribution rules (do not skip this when touching license/copyright text)
+
+This code is licensed under MPL-2.0, inherited from the upstream project.
+When editing files or writing new ones:
+
+- **Existing files** (essentially all of `internal/provider/*.go`, the example
+  `.tf` files, etc.) carry a `Copyright (c) HashiCorp, Inc.` /
+  `SPDX-License-Identifier: MPL-2.0` header. **Leave that header as-is** when
+  modifying an existing file, even substantially — MPL-2.0 does not allow
+  stripping or altering the original copyright notice, and the file is still
+  majority HashiCorp-authored code even after your edits. Do not add your
+  own copyright line to an existing file's header.
+- **Wholly new files** you create (a new resource, a new test file with no
+  HashiCorp precedent, etc.) should carry `Copyright (c) Barrule Medical
+  Group Limited` / `SPDX-License-Identifier: MPL-2.0` instead — that's the
+  accurate attribution, since HashiCorp never touched that file.
+- **`LICENSE`**: contains both `Copyright (c) 2021 HashiCorp, Inc.` and
+  `Portions Copyright (c) 2026 Barrule Medical Group Limited`. Never remove
+  the HashiCorp line. Never rewrite the MPL-2.0 legal text itself — that's
+  not something to edit casually or "clean up."
+- **`CHANGELOG.md`**: a historical record of real PRs merged against the
+  actual upstream HashiCorp repository. Don't rewrite or rebrand old
+  entries; only append new ones for this fork's own changes going forward.
+- Docs/READMEs/branding should point at `BarruleMedicalGroupLimited/terraform-provider-googleworkspace`
+  and this repo's own `docs/` folder, not `hashicorp/terraform-provider-googleworkspace`
+  or the public Terraform Registry — this provider isn't published there.
+
+If a task involves copyright/license/attribution decisions beyond the rules
+above, ask before proceeding rather than guessing — these have real legal
+consequences.
+
+## Build, test, lint
+
+```sh
+make build      # go install
+make test       # fast unit tests, no network
+make testacc    # full acceptance suite - TF_ACC=1, hits the real Google
+                 # Workspace Admin SDK API, needs real credentials, costs
+                 # real API quota, can create/destroy real resources
+gofmt -l .       # must be empty
+go vet ./...     # must be clean (exit 0) - keep it that way; fix findings
+                 # rather than suppressing them
+```
+
+Acceptance tests (`TestAcc*` in `internal/provider/*_test.go`) require env
+vars documented in `.github/CONTRIBUTING.md` (`GOOGLEWORKSPACE_CUSTOMER_ID`,
+`GOOGLEWORKSPACE_DOMAIN`, `GOOGLEWORKSPACE_IMPERSONATED_USER_EMAIL`,
+credentials, etc.) and are skipped automatically without them. There is no
+CI workflow in this repo that runs them (`.github/workflows/` currently only
+has `release.yml`) — they're a local/manual responsibility.
+
+## Working conventions
+
+- Push to a branch, never directly to `main`. Don't open a PR unless asked.
+- Keep `go vet ./...`, `gofmt -l .`, and `go build ./...` clean before
+  committing Go changes.
+- When fixing a suspected bug in `internal/provider`, prefer writing a
+  small isolated test that reproduces it first, confirm it fails against
+  the current code, then fix and confirm it passes — this repo's existing
+  tests (e.g. `eventual_consistency_test.go`) already follow that style.
+- `internal/provider/logging_transport.go` scrubs sensitive fields (e.g.
+  `accessToken`) out of `TF_LOG=DEBUG` request/response dumps, recursively
+  through nested objects and arrays (`obfuscateValues`/`obfuscateValue`).
+  If you add a new sensitive field name to a request/response body, add it
+  to `getValuesToScrub()` and cover it in `logging_transport_test.go`.
+- Provider-level secret fields (`access_token`, `credentials` in
+  `provider.go`) are marked `Sensitive: true`, matching resource-level
+  secrets like `googleworkspace_user.password`. Keep that convention for
+  any new secret-bearing schema field.
