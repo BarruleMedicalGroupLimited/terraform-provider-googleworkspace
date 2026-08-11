@@ -1,6 +1,22 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-linters-settings:
-  errcheck:
-    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:Set,fmt:.*
+# v2 config schema. Required as of this repo's go.mod moving to `go 1.25.0`
+# (needed to pick up CVE-fixed golang.org/x/net/x/text/grpc releases) -
+# golangci-lint v1's last release (v1.64.8) was built with go1.24 and
+# refuses to analyze a go1.25-targeting module ("the Go language version
+# used to build golangci-lint is lower than the targeted Go version").
+# v2 is the only line with releases built against newer Go toolchains.
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      exclude-functions:
+        - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
+        - fmt.Print
+        - fmt.Println
+        - fmt.Printf
+        - fmt.Fprint
+        - fmt.Fprintln
+        - fmt.Fprintf

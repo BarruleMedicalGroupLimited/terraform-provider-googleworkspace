@@ -3,36 +3,25 @@
     <img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" alt="Terraform logo" align="right" height="50" />
 </a>
 
-![Status: Tech Preview](https://img.shields.io/badge/status-experimental-EAAA32) [![Releases](https://img.shields.io/github/release/hashicorp/terraform-provider-googleworkspace.svg)](https://github.com/hashicorp/terraform-provider-googleworkspace/releases)
-[![LICENSE](https://img.shields.io/github/license/hashicorp/terraform-provider-googleworkspace.svg)](https://github.com/hashicorp/terraform-provider-googleworkspace/blob/main/LICENSE)![Unit tests](https://github.com/hashicorp/terraform-provider-googleworkspace/workflows/Unit%20tests/badge.svg)
+![Status: Internal Fork](https://img.shields.io/badge/status-internal--fork-blue) [![Releases](https://img.shields.io/github/release/BarruleMedicalGroupLimited/terraform-provider-googleworkspace.svg)](https://github.com/BarruleMedicalGroupLimited/terraform-provider-googleworkspace/releases)
+[![LICENSE](https://img.shields.io/github/license/BarruleMedicalGroupLimited/terraform-provider-googleworkspace.svg)](https://github.com/BarruleMedicalGroupLimited/terraform-provider-googleworkspace/blob/main/LICENSE)
 
 This Google Workspace provider for Terraform allows you to manage domains, users, and groups in your Google Workspace.
 
-This provider is a technical preview, which means it's a community supported project. It still requires extensive testing and polishing to mature into a HashiCorp officially supported project. Please [file issues](https://github.com/hashicorp/terraform-provider-googleworkspace/issues/new/choose) generously and detail your experience while using the provider. We welcome your feedback.
+## About This Fork
 
-## Experimental Status
+This repository is an internal fork of [hashicorp/terraform-provider-googleworkspace](https://github.com/hashicorp/terraform-provider-googleworkspace). HashiCorp has since **archived** the upstream project and no longer maintains or supports it.
 
-By using the software in this repository (the "Software"), you acknowledge that: (1) the Software is still in development, may change, and has not been released as a commercial product by HashiCorp and is not currently supported in any way by HashiCorp; (2) the Software is provided on an "as-is" basis, and may include bugs, errors, or other issues; (3) the Software is NOT INTENDED FOR PRODUCTION USE, use of the Software may result in unexpected results, loss of data, or other unexpected results, and HashiCorp disclaims any and all liability resulting from use of the Software; and (4) HashiCorp reserves all rights to make all decisions about the features, functionality and commercial release (or non-release) of the Software, at any time and without any obligation or liability whatsoever.
+This fork is maintained internally by **Barrule Medical Group Limited**. It is not affiliated with, published by, or supported by HashiCorp. Please file issues and contributions against this repository rather than the upstream (archived) one. See [Special Recognition](#special-recognition) below for full attribution to the original project.
 
 ## Maintainers
 
-This provider plugin is maintained by the Terraform team at [HashiCorp](https://www.hashicorp.com/)
+This provider is maintained internally by Barrule Medical Group Limited.
 
 ## Requirements
 
 -	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
--	[Go](https://golang.org/doc/install) >= 1.16
-
-## Upgrading the provider
-
-The Google Workspace provider doesn't upgrade automatically once you've started using it. After a new release you can run
-
-```bash
-terraform init -upgrade
-```
-
-to upgrade to the latest stable version of the Google Workspace provider. See the [Terraform website](https://www.terraform.io/docs/configuration/providers.html#provider-versions)
-for more information on provider upgrades, and how to set version constraints on your provider.
+-	[Go](https://golang.org/doc/install) >= 1.25 (see `go.mod` for the exact version this is built/tested against)
 
 ## Building The Provider
 
@@ -59,8 +48,11 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using The provider
 
-See the [Google Workspace Provider documentation](https://registry.terraform.io/providers/hashicorp/googleworkspace/latest/docs) to get started using the
-Google Workspace provider.
+This provider is not published on the public Terraform Registry. Build it from source (see [Building The Provider](#building-the-provider) above) and point Terraform at your local build — see [Instructing Terraform to use a local copy of the provider](.github/CONTRIBUTING.md#instructing-terraform-to-use-a-local-copy-of-the-provider) in `CONTRIBUTING.md`. There's no registry-based `terraform init -upgrade` for this provider — to pick up a new change, rebuild (`make build`) and Terraform will pick up the rebuilt binary automatically once the local-install setup above is in place.
+
+If you're switching an existing config from the real, upstream-published `hashicorp/googleworkspace` provider to this fork, see the state migration note in `CONTRIBUTING.md`'s "Releasing" section before running `terraform init`.
+
+Provider configuration and resource/data source reference docs live in [`docs/`](./docs/index.md) in this repository.
 
 ## Developing the Provider
 
@@ -78,12 +70,11 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 $ make testacc
 ```
 
-For guidance on common development practices such as testing changes, see the [contribution guidelines](https://github.com/hashicorp/terraform-provider-googleworkspace/blob/main/.github/CONTRIBUTING.md).
+For guidance on common development practices such as testing changes, see the [contribution guidelines](.github/CONTRIBUTING.md).
 If you have other development questions we don't cover, please file an issue!
 
 ## Special Recognition
 
-* [Chase](https://github.com/DeviaVir) - for the excellent work creating the `DeviaVir/terraform-provider-gsuite` provider, the inspiration for this project.
+This project began as [hashicorp/terraform-provider-googleworkspace](https://github.com/hashicorp/terraform-provider-googleworkspace), created and maintained by the Terraform team at HashiCorp until the repository was archived. All credit for the original design and implementation belongs to HashiCorp and its contributors; see the [LICENSE](./LICENSE) for the full copyright notice.
 
-## General Feedback
-* How can we best support you ? - [feedback](https://forms.gle/XeqgPiFTtdevcRiu8)
+* [Chase](https://github.com/DeviaVir) - for the excellent work creating the `DeviaVir/terraform-provider-gsuite` provider, the inspiration for the original project.

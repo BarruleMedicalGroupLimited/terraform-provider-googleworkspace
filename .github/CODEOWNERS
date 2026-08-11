@@ -1,0 +1,12 @@
+# Copyright (c) Barrule Medical Group Limited
+# SPDX-License-Identifier: MPL-2.0
+#
+# See https://docs.github.com/articles/about-code-owners for CODEOWNERS
+# syntax. Last match in the file wins, so keep broad rules first and more
+# specific overrides below them.
+#
+# This starts as a single blanket owner since the fork is maintained by one
+# person today - split it out by path (e.g. internal/provider/, .github/)
+# as the team grows.
+
+* @Stainless5166

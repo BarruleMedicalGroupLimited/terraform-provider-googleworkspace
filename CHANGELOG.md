@@ -1,4 +1,19 @@
 ## 0.8.0 (Unreleased)
+
+NOTES:
+
+* This release marks the start of Barrule Medical Group Limited's internal fork, adopted after HashiCorp archived the upstream `hashicorp/terraform-provider-googleworkspace` project. Module path changed from `github.com/hashicorp/terraform-provider-googleworkspace` to `github.com/BarruleMedicalGroupLimited/terraform-provider-googleworkspace`; see `README.md` and `LICENSE` for the fork notice and attribution.
+
+IMPROVEMENTS:
+
+* provider: `access_token` and `credentials` are now marked `Sensitive`, matching existing resource-level secrets like `googleworkspace_user.password`
+* Added `.github/workflows/test.yml`: build/fmt/vet/lint/unit-test checks now run on every push to `main` and every pull request
+
+BUG FIXES:
+
+* provider: debug-log scrubbing (`TF_LOG=DEBUG`) now recurses into nested objects and arrays, so an `accessToken` nested under a sub-object or inside a list of items is no longer logged in plaintext
+* directory: `reachedConsistency` required an exact `currConsistent == numConsistent` match instead of `>=`, which could make resource creation wait far longer than intended (up to the coarser `maxConsistent` fallback) whenever `etagChanges` caught up to `numInserts` after `currConsistent` had already passed the threshold
+
 ## 0.7.0 (June 10, 2022)
 
 FEATURES:
