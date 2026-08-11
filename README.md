@@ -21,18 +21,7 @@ This provider is maintained internally by Barrule Medical Group Limited.
 ## Requirements
 
 -	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
--	[Go](https://golang.org/doc/install) >= 1.16
-
-## Upgrading the provider
-
-The Google Workspace provider doesn't upgrade automatically once you've started using it. After a new release you can run
-
-```bash
-terraform init -upgrade
-```
-
-to upgrade to the latest stable version of the Google Workspace provider. See the [Terraform website](https://www.terraform.io/docs/configuration/providers.html#provider-versions)
-for more information on provider upgrades, and how to set version constraints on your provider.
+-	[Go](https://golang.org/doc/install) >= 1.25 (see `go.mod` for the exact version this is built/tested against)
 
 ## Building The Provider
 
@@ -59,7 +48,9 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using The provider
 
-This provider is not published on the public Terraform Registry. Build it from source (see [Building The Provider](#building-the-provider) above) and point Terraform at your local build — see [Instructing Terraform to use a local copy of the provider](.github/CONTRIBUTING.md#instructing-terraform-to-use-a-local-copy-of-the-provider) in `CONTRIBUTING.md`.
+This provider is not published on the public Terraform Registry. Build it from source (see [Building The Provider](#building-the-provider) above) and point Terraform at your local build — see [Instructing Terraform to use a local copy of the provider](.github/CONTRIBUTING.md#instructing-terraform-to-use-a-local-copy-of-the-provider) in `CONTRIBUTING.md`. There's no registry-based `terraform init -upgrade` for this provider — to pick up a new change, rebuild (`make build`) and Terraform will pick up the rebuilt binary automatically once the local-install setup above is in place.
+
+If you're switching an existing config from the real, upstream-published `hashicorp/googleworkspace` provider to this fork, see the state migration note in `CONTRIBUTING.md`'s "Releasing" section before running `terraform init`.
 
 Provider configuration and resource/data source reference docs live in [`docs/`](./docs/index.md) in this repository.
 

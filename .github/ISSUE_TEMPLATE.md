@@ -20,7 +20,7 @@ If this issue appears to affect multiple resources, it may be an issue with Terr
 ```
 
 ### Debug Output
-Please provide a link to a Gist or paste containing the complete debug output: https://www.terraform.io/docs/internals/debugging.html. Redact any credentials or tokens before sharing - `TF_LOG=DEBUG` scrubs known sensitive fields (e.g. `accessToken`) from provider request/response logs, but review before sharing regardless.
+Please provide a link to a Gist or paste containing the complete debug output: https://www.terraform.io/docs/internals/debugging.html. `TF_LOG=DEBUG` scrubs known sensitive fields (e.g. `accessToken`, `Authorization` headers) from provider request/response logs, but that's not a substitute for reviewing it yourself first - redact anything else sensitive too: real user emails, customer/org IDs, domain names, or any other request/response data you don't want public.
 
 ### Panic Output
 If Terraform produced a panic, please include the output of the `crash.log`.

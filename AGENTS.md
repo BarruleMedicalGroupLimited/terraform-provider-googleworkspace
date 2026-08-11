@@ -1,3 +1,6 @@
+<!-- Copyright (c) Barrule Medical Group Limited -->
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+
 # AGENTS.md
 
 Guidance for AI coding agents working in this repository.
@@ -63,13 +66,27 @@ dedicated test environment exists for this fork.
 
 `.github/workflows/`:
 - `test.yml` runs on every push to `main` and every PR: build, `gofmt`,
-  `go vet`, unit tests (`make test`, which never sets `TF_ACC` so
-  acceptance tests self-skip), and `golangci-lint` scoped to
-  `only-new-issues: true`. That scoping is deliberate - there's a backlog
-  of pre-existing findings from before this workflow existed; only newly
-  introduced issues fail the build. Don't quietly widen that scope without
-  either fixing the backlog first or getting a green light to add a
-  temporary `//nolint` inline instead.
+  `go vet`, `golangci-lint`, unit tests (`make test`, which never sets
+  `TF_ACC` so acceptance tests self-skip), and `govulncheck`.
+  - `golangci-lint` is scoped to `only-new-issues: true`. That scoping is
+    deliberate - there's a backlog of pre-existing findings from before
+    this workflow existed; only newly introduced issues fail the build.
+    Don't quietly widen that scope without either fixing the backlog
+    first or getting a green light to add a temporary `//nolint` inline
+    instead.
+  - `.golangci.yml` is v2-schema, and the lint action is pinned to a v7.x
+    release (which defaults to golangci-lint v2). This isn't optional:
+    go.mod targets `go 1.25.0` (needed to pick up CVE-fixed golang.org/
+    x/net releases - see govulncheck below), and golangci-lint v1's final
+    release was built with go1.24, which refuses outright to analyze a
+    newer-targeting module. If go.mod's `go` directive ever drops back
+    below what the pinned golangci-lint's own Go toolchain supports,
+    that's the failure mode to look for.
+  - `govulncheck` (`golang/govulncheck-action`) checks reachable-vulnerability
+    exposure via the Go vulnerability database. If it fails, read the
+    trace it prints - it tells you which of your own call sites reach the
+    vulnerable code, which is usually enough to know whether a dependency
+    bump is required or the finding is a false positive for this binary.
 - `release.yml` runs on `v*` tag pushes: builds, signs (GPG), and publishes
   a GitHub Release via GoReleaser. Needs `GPG_PRIVATE_KEY`/`PASSPHRASE`
   repo secrets to succeed - see `.github/CONTRIBUTING.md`'s "Releasing"
